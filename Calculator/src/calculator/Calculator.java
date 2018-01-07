@@ -19,6 +19,8 @@ public class Calculator {
     JButton equals;
     JButton decimal;
     JButton cancel;
+    JButton sign;
+    JButton percent;
     JButton divide;
     JButton multiply;
     JButton subtract;
@@ -34,6 +36,9 @@ public class Calculator {
     JButton nine;
     JButton zero;
     JLabel display;
+    private boolean operating = false;
+    private char state;
+    private double num1;
     
     public Calculator() {
         frame = new JFrame("Calculator");
@@ -43,10 +48,12 @@ public class Calculator {
         contentPane.setLayout(new GridBagLayout());
         contentPane.setBorder(BorderFactory.createLineBorder(Color.black, 5));
         GridBagConstraints c = new GridBagConstraints();
+        Font f = new Font("Arial", Font.PLAIN, 30);
         
         display = new JLabel("0");
         display.setHorizontalAlignment(JLabel.RIGHT);
         display.setOpaque(true);
+        display.setFont(f);
         display.setBackground(Color.white);
         c.gridx = 0;
         c.gridy = 0;
@@ -56,6 +63,7 @@ public class Calculator {
         contentPane.add(display, c);
         
         seven = new JButton("7");
+        seven.setFont(f);
         seven.addActionListener(new NumberListener());
         seven.setActionCommand("7");
         c.gridx = 0;
@@ -64,6 +72,7 @@ public class Calculator {
         contentPane.add(seven, c);     
         
         eight = new JButton("8");
+        eight.setFont(f);
         eight.addActionListener(new NumberListener());
         eight.setActionCommand("8");
         c.gridx = 1;
@@ -71,6 +80,7 @@ public class Calculator {
         contentPane.add(eight, c);      
         
         nine = new JButton("9");
+        nine.setFont(f);
         nine.addActionListener(new NumberListener());
         nine.setActionCommand("9");
         c.gridx = 2;
@@ -78,6 +88,7 @@ public class Calculator {
         contentPane.add(nine, c); 
         
         four = new JButton("4");
+        four.setFont(f);
         four.addActionListener(new NumberListener());
         four.setActionCommand("4");
         c.gridx = 0;
@@ -85,6 +96,7 @@ public class Calculator {
         contentPane.add(four, c);     
         
         five = new JButton("5");
+        five.setFont(f);
         five.addActionListener(new NumberListener());
         five.setActionCommand("5");
         c.gridx = 1;
@@ -92,6 +104,7 @@ public class Calculator {
         contentPane.add(five, c);     
         
         six = new JButton("6");
+        six.setFont(f);
         six.addActionListener(new NumberListener());
         six.setActionCommand("6");
         c.gridx = 2;
@@ -99,6 +112,7 @@ public class Calculator {
         contentPane.add(six, c);   
         
         one = new JButton("1"); 
+        one.setFont(f);
         one.addActionListener(new NumberListener());
         one.setActionCommand("1");
         c.gridx = 0;
@@ -106,6 +120,7 @@ public class Calculator {
         contentPane.add(one, c);      
         
         two = new JButton("2");
+        two.setFont(f);
         two.addActionListener(new NumberListener());
         two.setActionCommand("2");
         c.gridx = 1;
@@ -113,6 +128,7 @@ public class Calculator {
         contentPane.add(two, c);        
         
         three = new JButton("3");
+        three.setFont(f);
         three.addActionListener(new NumberListener());
         three.setActionCommand("3");
         c.gridx = 2;
@@ -120,6 +136,7 @@ public class Calculator {
         contentPane.add(three, c);
         
         zero = new JButton("0");
+        zero.setFont(f);
         zero.addActionListener(new NumberListener());
         zero.setActionCommand("0");
         c.gridx = 0;
@@ -128,6 +145,7 @@ public class Calculator {
         contentPane.add(zero, c);
         
         decimal = new JButton(".");
+        decimal.setFont(f);
         decimal.addActionListener(new NumberListener());
         decimal.setActionCommand(".");
         c.gridx = 2;
@@ -136,35 +154,68 @@ public class Calculator {
         contentPane.add(decimal, c);
         
         divide = new JButton("÷");
+        divide.setFont(f);
+        divide.addActionListener(new OperationListener());
+        divide.setActionCommand("divide");
         c.gridx = 3;
         c.gridy = 1;
         contentPane.add(divide, c);
         
         multiply = new JButton("x");
+        multiply.setFont(f);
+        multiply.addActionListener(new OperationListener());
+        multiply.setActionCommand("multiply");
         c.gridx = 3;
         c.gridy = 2;
         contentPane.add(multiply, c);
         
         subtract = new JButton("-");
+        subtract.setFont(f);
+        subtract.addActionListener(new OperationListener());
+        subtract.setActionCommand("subtract");
         c.gridx = 3;
         c.gridy = 3;
         contentPane.add(subtract, c);
         
         add = new JButton("+");
+        add.setFont(f);
+        add.addActionListener(new OperationListener());
+        add.setActionCommand("add");
         c.gridx = 3;
         c.gridy = 4;
         contentPane.add(add, c);
         
         equals = new JButton("=");
+        equals.setFont(f);
+        equals.addActionListener(new FunctionListener());
+        equals.setActionCommand("equals");
         c.gridx = 3;
         c.gridy = 5;
         contentPane.add(equals, c);
         
         cancel = new JButton("c");
+        cancel.setFont(f);
         cancel.addActionListener(new FunctionListener());
+        cancel.setActionCommand("cancel");
         c.gridx = 0;
         c.gridy = 1;
         contentPane.add(cancel, c);
+        
+        sign = new JButton("+/-");
+        sign.setFont(f);
+        sign.addActionListener(new FunctionListener());
+        sign.setActionCommand("sign");
+        c.gridx = 1;
+        c.gridy = 1;
+        contentPane.add(sign, c);
+        
+        percent = new JButton("%");
+        percent.setFont(f);
+        percent.addActionListener(new FunctionListener());
+        percent.setActionCommand("percent");
+        c.gridx = 2;
+        c.gridy = 1;
+        contentPane.add(percent, c);
         
         frame.setContentPane(contentPane);
         frame.pack();
@@ -176,8 +227,9 @@ public class Calculator {
     class NumberListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (display.getText().equals("0")) {
+            if (display.getText().equals("0") || operating == true) {
                 display.setText(e.getActionCommand());
+                operating = false;
             } else {
                 display.setText(display.getText() + "" +  e.getActionCommand());
             }
@@ -187,7 +239,61 @@ public class Calculator {
     class FunctionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            display.setText("0");
+            double temp;
+            switch (e.getActionCommand()) {
+                case "cancel":
+                    display.setText("0");
+                    break;
+                case "sign":
+                    temp = Double.parseDouble(display.getText());
+                    temp = -temp;
+                    display.setText(temp + "");
+                    break;
+                case "percent":
+                    temp = Double.parseDouble(display.getText());
+                    temp /= 100;
+                    display.setText(temp + "");
+                    break;
+                case "equals": 
+                    switch (state) {
+                        case '+':
+                            display.setText(num1+Double.parseDouble(display.getText()) + "");
+                            break;
+                        case '-':
+                            display.setText(num1-Double.parseDouble(display.getText()) + "");
+                            break;
+                        case '*':
+                            display.setText(num1*Double.parseDouble(display.getText()) + "");
+                            break;
+                        case '/':
+                            display.setText(num1/Double.parseDouble(display.getText()) + "");
+                            break;
+                                
+                    }
+                    break;
+            }
+        }
+    }
+    
+    class OperationListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            num1 = Double.parseDouble(display.getText());
+            operating  = true;
+            switch (e.getActionCommand()) {
+                case "add":
+                    state = '+';
+                    break;
+                case "subtract":
+                    state = '-';
+                    break;
+                case "multiply":
+                    state = '*';
+                    break;
+                case "divide":
+                    state = '/';
+                    break;
+            }
         }
     }
     
