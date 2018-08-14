@@ -37,8 +37,11 @@ public class Calculator {
     JButton zero;
     JLabel display;
     private boolean operating = false;
-    private char state;
+    private boolean hasDecimal = false;
+    private boolean result = false;
+    private char operator;
     private double num1;
+    private double num2;
     
     public Calculator() {
         frame = new JFrame("Calculator");
@@ -227,11 +230,26 @@ public class Calculator {
     class NumberListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (display.getText().equals("0") || operating == true) {
-                display.setText(e.getActionCommand());
+            String button = e.getActionCommand();
+            
+            if (display.getText().equals("0") || operating == true || result == true) {
+                if (button.equals(".")) {
+                    display.setText("0.");
+                    hasDecimal = true;
+                } else {
+                    display.setText(button);
+                }
                 operating = false;
+                result = false;
             } else {
-                display.setText(display.getText() + "" +  e.getActionCommand());
+                if (button.equals(".")) {
+                    if (!hasDecimal) {
+                        display.setText(display.getText() + ".");
+                        hasDecimal = true;
+                    }
+                } else { 
+                    display.setText(display.getText() + button);
+                }
             }
         }
     }
@@ -255,20 +273,28 @@ public class Calculator {
                     display.setText(temp + "");
                     break;
                 case "equals": 
-                    switch (state) {
+                    num2 = Double.parseDouble(display.getText());
+                    switch (operator) {
                         case '+':
-                            display.setText(num1+Double.parseDouble(display.getText()) + "");
+                            num1 += num2;
                             break;
                         case '-':
-                            display.setText(num1-Double.parseDouble(display.getText()) + "");
+                            num1 -= num2;
                             break;
                         case '*':
-                            display.setText(num1*Double.parseDouble(display.getText()) + "");
+                            num1 *= num2;
                             break;
                         case '/':
-                            display.setText(num1/Double.parseDouble(display.getText()) + "");
+                            num1 /= num2;
                             break;
-                                
+                        default:
+                            break;
+                    }
+                    result = true;
+                    if (num1%1 == 0) {
+                        display.setText((int)(num1) + "");
+                    } else {
+                        display.setText(num1 + "");
                     }
                     break;
             }
@@ -282,16 +308,16 @@ public class Calculator {
             operating  = true;
             switch (e.getActionCommand()) {
                 case "add":
-                    state = '+';
+                    operator = '+';
                     break;
                 case "subtract":
-                    state = '-';
+                    operator = '-';
                     break;
                 case "multiply":
-                    state = '*';
+                    operator = '*';
                     break;
                 case "divide":
-                    state = '/';
+                    operator = '/';
                     break;
             }
         }
